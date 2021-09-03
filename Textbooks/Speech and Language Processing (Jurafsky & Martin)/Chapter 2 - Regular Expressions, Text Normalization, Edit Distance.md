@@ -2,6 +2,8 @@
 
 - [x]  Create a regex that matches 500GB or more, [but not exactly 500GB](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85)
 - [ ]  Rewrite regex above using negative lookahead assertions
+- [ ]  Review BPE algorithm
+- [ ]  Document everything I did to learn the minimum edit distance algorithm (including YouTube videos, pptx slides, hand-written notes, and spreadsheet)
 - [ ]  Review notes for grammar and clarity
 
 # Notes
@@ -9,7 +11,8 @@
 **Text Normalization:** basically preparing text into a form that's easier for a program to deal with. Involves:
 
 - **Tokenization:** separating a body of text into **tokens** (words). Usually whitespace separates words from each other in languages like English, but that's not always enough: words like *New York,* for instance, might be regarded as a single token.
-- **Lemmatization:** from *lemma;* figuring out which words share the same root. For instance, *sang, sung, singing* all relate to *sing*. **Stemming** is a simpler version of lemmatization which simply removes the suffixes from words. A **wordform** is the full version of a lemma (i.e. *cat* could be a lemma and *cats* a wordform)
+- **Lemmatization:** from *lemma;* figuring out which words share the same root. For instance, *sang, sung, singing* all relate to *sing*. **Stemming** is a simpler version of lemmatization which simply removes the suffixes from words. A **wordform** is the full version of a lemma (i.e. *cat* could be a lemma and *cats* a wordform).
+    - The most sophisticated ways to lemmatize a corpus involve full morphological parsing (e.g. breaking down *recomeçarem* into something resembling *re-, começar-, -em;* this might also return morphological information such as *3rd person* or *future subjunctive*)
 - **Sentence segmentation**
 
 ---
@@ -60,4 +63,27 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
 
 ### Numbered:
 
-1.
+1. Write regular expressions for the following languages.
+    1. the set of all alphabetic strings;
+
+        ```python
+        /\b[A-Za-z]+\b/
+        ```
+
+    2. the set of all lower case alphabetic strings ending in a b;
+
+        ```python
+        /\b[a-z]*b\b/
+        ```
+
+    3. the set of all strings from the alphabet a,b such that each a is immediately preceded by and immediately followed by a b;
+
+        ```python
+        /\b(b+(ab)*b*)+\b/
+        ```
+
+2. Write regular expressions for the following languages. By “word”, we mean an alphabetic string separated from other words by whitespace, any relevant punctuation, line breaks, and so forth.
+    1. the set of all strings with two consecutive repeated words (e.g., “Humbert Humbert” and “the the” but not “the bug” or “the big bug”);
+    2. all strings that start at the beginning of the line with an integer and that end at the end of the line with a word;
+    3. all strings that have both the word grotto and the word raven in them (but not, e.g., words like grottos that merely contain the word grotto);
+    4. write a pattern that places the first word of an English sentence in a register. Deal with punctuation.
