@@ -1,4 +1,10 @@
-#TODO: Augment the minimum edit distance algorithm to output an alignment; you will need to store pointers and add a stage to compute the backtrace
+"""
+Returns the edit distance between source and target strings, calculated through 
+a dynamic programming matrix. This function is an attempt to implement the edit
+distance algorithm shown in the textbook (figure 2.17) as directly as possible. 
+For a more complete version of this function, which includes pointers and 
+backtracing, check out mineditbacktrace.py. 
+"""
 
 DEL_COST = 1
 INS_COST = 1
@@ -6,9 +12,9 @@ SUB_COST_DIF = 2
 SUB_COST_EQL = 0
 
 def min_edit_dist(source, target):
-    
     n = len(source)
     m = len(target)
+
     matrix = [[0] * (len(target) + 1) for _ in range(len(source) + 1)]
     # Initialization: the zeroth row and column is the distance from the empty string
     for i in range(1, n + 1):
