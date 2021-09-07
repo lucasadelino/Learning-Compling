@@ -1,4 +1,5 @@
-#TODO: Implement pretty print matrix. Options for outputting raw text or LaTeX 
+#TODO: Implement pretty print matrix. Options for outputting raw text or LaTeX
+#TODO: Implement weighting  
 
 from random import choice
 
@@ -9,8 +10,8 @@ SUB_COST_EQL = 0
 
 def min_edit_dist(source, target):
     """
-    Calculate the edit distance between source and target strings Returns a 
-    list containing:
+    Calculate the edit distance between source and target strings. Returns a 
+    tuple containing:
         The minimum edit distance [0]
         The dynamic programming matrix used to calculate the above [1] 
     """
@@ -65,7 +66,7 @@ def align(source, target):
     Generates an alignment by backtracing the dynamic programming matrix of the 
     edit distance between source and target strings. When backtracing, if 
     multiple directions are avaliable, chooses a random direction.  Returns a 
-    list containing:
+    tuple containing:
         The source word's output [0]
         The target word's output [1]
         The operations performed to align source with target [2]
