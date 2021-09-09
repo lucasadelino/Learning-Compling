@@ -78,8 +78,16 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
 
     3. the set of all strings from the alphabet a,b such that each a is immediately preceded by and immediately followed by a b;
 
+        I unsure how to interpret the prompt. Is it necessary for an 'a' to appear at least once? (i.e. should the regex match 'b' or only something like 'bab')? If the 'a' is not required, then the regex is as follows:
+
         ```python
         /\b(b+(ab)*b*)+\b/
+        ```
+
+        If the 'a' is required, then the regex is as follows:
+
+        ```python
+        /\b(b+(ab)+b*)+\b/
         ```
 
 2. Write regular expressions for the following languages. By “word”, we mean an alphabetic string separated from other words by whitespace, any relevant punctuation, line breaks, and so forth.
@@ -104,7 +112,7 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
     4. write a pattern that places the first word of an English sentence in a register. Deal with punctuation.
 
         ```python
-        /(.*(grotto).*(raven).*)|(.*(raven).*(grotto).*)/
+        //
         ```
 
 3. Implement an ELIZA-like program, using substitutions such as those described on page 10. You might want to choose a different domain than a Rogerian psychologist, although keep in mind that you would need a domain in which your program can legitimately engage in a lot of simple repetition.
@@ -130,4 +138,9 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
 
 5. Figure out whether drive is closer to brief or to divers and what the edit distance is to each. You may use any version of distance that you like.
 6. Now implement a minimum edit distance algorithm and use your hand-computed results to check your code.
+
+    [mineditdist.py](https://github.com/lucasadelino/Learning-Compling/blob/main/Textbooks/Speech%20and%20Language%20Processing%20(Jurafsky%2C%20Martin)/Chapter%202%20-%20Regular%20Expressions%2C%20Text%20Normalization%2C%20Edit%20Distance/mineditdist.py)
+
 7. Augment the minimum edit distance algorithm to output an alignment; you will need to store pointers and add a stage to compute the backtrace.
+
+    [mineditbacktrace.py](https://github.com/lucasadelino/Learning-Compling/blob/main/Textbooks/Speech%20and%20Language%20Processing%20(Jurafsky%2C%20Martin)/Chapter%202%20-%20Regular%20Expressions%2C%20Text%20Normalization%2C%20Edit%20Distance/mineditbacktrace.py)
