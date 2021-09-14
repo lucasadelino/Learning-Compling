@@ -5,22 +5,22 @@ TODO: Create ngram probability function
 
 import re
 import math
-from copy import copy
+from random import choices
 
 # Matches everything before a period, question mark, or exclamation mark. 
-sentence_regex = re.compile(r'(\S(?:.+?)[\.\?!])')
+sentence_regex = re.compile(r'(\S(?:.+?)[\.\?!]+)')
 
 # Matches either a sequence of word characters or a punctuation mark
-token_regex = re.compile(r'(\w+|[“”":;\'-\.\?!,])')
+token_regex = re.compile(r'(\w+|[“”":;\'-\.\?!,]+)')
 
 # Matches punctuation marks
-punctuation_regex = re.compile(r'([“”":;\'-\.\?!,])') 
+punctuation_regex = re.compile(r'([“”":;\'-\.\?!,]+)') 
 
 # Matches en dashes surrounded by word characters. Useful for PT-BR parsing
 travessao_regex = re.compile(r'(\w)-(\w)')
 
 # TODO: Read example text from a .txt file
-example_text = 'Paragraphs are the building blocks of papers. Many students define paragraphs in terms of length: a paragraph is a group of at least five sentences, a paragraph is half a page long, etc. In reality, though, the unity and coherence of ideas among sentences is what constitutes a paragraph. A paragraph is defined as “a group of sentences or a single sentence that forms a unit”. Length and appearance do not determine whether a section in a paper is a paragraph. For instance, in some styles of writing, particularly journalistic styles, a paragraph can be just one sentence long. Ultimately, a paragraph is a sentence or group of sentences that support one main idea. In this handout, we will refer to this as the “controlling idea,” because it controls what happens in the rest of the paragraph.'
+example_text = 'César, Augusto, Nero e Massinissa, com os nomes por baixo... Não alcanço a razão de tais personagens.'
 
 def sentence_segment(text):
     """Returns a list containing the argument text broken up into sentences. 
@@ -120,9 +120,51 @@ def ngram_prob(n, token_list):
         ngram_prob.update({key: p})
     
     return ngram_prob
-    
-test = ngram_prob(2, tokenize(example_text, punctuation=False, n = 2))
-print(sorted(test.items(), key=lambda x: x[1], reverse=False))
 
+def generate_sentence(ngram_prob):
+    """
+    Generates a sentence based on a dictionary of ngram probabilities
+    """
+    # Look at keys in ngram_prob to figure out what's the order of our ngrams
+    n = len(list(ngram_prob.keys())[0].split(' '))
+       
+    # Look for 1st ngram. Consider only ngrams that start with n-1 <s> markers
+    next_keys = []
+    next_values = []
+    start_marker = ('<s> ' * (n - 1)).strip()
+    for k, v in ngram_prob.items():
+        if k.startswith(start_marker):
+            next_keys.append(k)
+            next_values.append(v)
+    # Choose ngram according to its probability
+    sentence = choices(next_keys, weights=next_values)[0]
+    # Next ngram must start with the last word of this ngram
+    last_word = sentence.rsplit(' ', 1)[1]
+    
+    # Keep generating sentences until we get an n-gram with an </s> end marker. 
+    # Loop stops after the first </s>; we'll add the remanining markers later 
+    end_marker = '</s>'
+    while end_marker not in last_word:
+        # Look for next ngram.
+        next_keys = []
+        next_values = []
+        for k, v in ngram_prob.items():
+            if k.startswith(last_word):
+                next_keys.append(k)
+                next_values.append(v)
+        # Choose ngram. Add only its last word; the rest is already in sentence
+        next_ngram = choices(next_keys, weights=next_values)[0]
+        last_word = next_ngram.rsplit(' ', 1)[1]
+        sentence += ' ' + last_word
+
+    # Add missing sentence end markers
+    sentence +=  (' ' + end_marker) * (n - 2)
+
+    return sentence
+
+
+test = ngram_prob(3, tokenize(example_text, punctuation=False, n = 3))
+print(generate_sentence(test))
+#print(sorted(test.items(), key=lambda x: x[1], reverse=False))
 """for i in range(1, n + 1):
 ngram_counts_list.append(ngram_count(i, token_list))"""
