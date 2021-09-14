@@ -4,13 +4,14 @@ TODO: Create ngram probability function
 """
 
 import re
+import math
 from copy import copy
 
 # Matches everything before a period, question mark, or exclamation mark. 
 sentence_regex = re.compile(r'(\S(?:.+?)[\.\?!])')
 
 # Matches either a sequence of word characters or a punctuation mark
-token_regex = re.compile(r'(<?\w+>?|[“”":;\'-\.\?!,])')
+token_regex = re.compile(r'(\w+|[“”":;\'-\.\?!,])')
 
 # Matches punctuation marks
 punctuation_regex = re.compile(r'([“”":;\'-\.\?!,])') 
@@ -19,21 +20,25 @@ punctuation_regex = re.compile(r'([“”":;\'-\.\?!,])')
 travessao_regex = re.compile(r'(\w)-(\w)')
 
 # TODO: Read example text from a .txt file
-example_text = 'Vivo só, com um criado. A casa em que moro é própria; fi-la construir de propósito, levado de um desejo tão particular que me vexa imprimi-lo, mas vá lá. Um dia, há bastantes anos, lembrou-me reproduzir no Engenho Novo a casa em que me criei na antiga rua de Matacavalos, dando-lhe o mesmo aspecto e economia daquela outra, que desapareceu. Construtor e pintor entenderam bem as indicações que lhes fiz: é o mesmo prédio assobradado, três janelas de frente, varanda ao fundo, as mesmas alcovas e salas. Na principal destas, a pintura do teto e das paredes é mais ou menos igual, umas grinaldas de flores miúdas e grandes pássaros que as tomam nos bicos, de espaço a espaço. Nos quatro cantos do teto as figuras das estações, e ao centro das paredes os medalhões de César, Augusto, Nero e Massinissa, com os nomes por baixo... Não alcanço a razão de tais personagens. Quando fomos para a casa de Matacavalos, já ela estava assim decorada; vinha do decênio anterior. Naturalmente era gosto do tempo meter sabor clássico e figuras antigas em pinturas americanas. O mais é também análogo e parecido. Tenho chacarinha, flores, legume, uma casuarina, um poço e lavadouro. Uso louça velha e mobília velha. Enfim, agora, como outrora, há aqui o mesmo contraste da vida interior, que é pacata, com a exterior, que é ruidosa.'
+example_text = 'Paragraphs are the building blocks of papers. Many students define paragraphs in terms of length: a paragraph is a group of at least five sentences, a paragraph is half a page long, etc. In reality, though, the unity and coherence of ideas among sentences is what constitutes a paragraph. A paragraph is defined as “a group of sentences or a single sentence that forms a unit”. Length and appearance do not determine whether a section in a paper is a paragraph. For instance, in some styles of writing, particularly journalistic styles, a paragraph can be just one sentence long. Ultimately, a paragraph is a sentence or group of sentences that support one main idea. In this handout, we will refer to this as the “controlling idea,” because it controls what happens in the rest of the paragraph.'
 
 def sentence_segment(text):
     """Returns a list containing the argument text broken up into sentences. 
-    Uses sentence_regex to look for sentences."""
+    Uses sentence_regex to look for sentences.
+    """
     return list(sentence_regex.findall(text))
 
 # TODO: Separate tokenizer into another file
-def tokenize(text, punctuation = True):
+def tokenize(text, punctuation = True, n = 1):
     """
     A very crude tokenizer. Returns a list of tokens for each sentence in the 
     text passed as argument. Punctuation marks are considered tokens if the 
     'punctuation' argument is set to True, or deleted if punctuation is set to 
-    False. At present, this tokenizer doesn't take named entities into account,
-    or employs any normalization other than case folding.
+    False. The n parameter adds n - 1 sentence start <s> and end </s> markers
+    to each sentence for ngram processing. At present, this tokenizer doesn't 
+    take named entities into account or employs any normalization other than 
+    case folding.
+    TODO: Add option that returns a single list instead of a list of lists
     """
     sentence_list = sentence_segment(text)
 
@@ -58,41 +63,66 @@ def tokenize(text, punctuation = True):
             if word.isupper() or word.istitle():
                 each_list[i] = word.lower()
 
+    # Insert sentence start <s> and end </s> markers into each list of tokens
+    if n > 1:
+        for i, sentence in enumerate(token_list):
+            token_list[i] = (['<s>']*(n - 1)) + sentence + (['</s>']*(n - 1))
+
     return token_list
 
 def ngram_count(n, token_list):
     """
-    Counts the ngrams in a list of tokens. Returns a dictionary containing each
-    ngram and their frequency counts.
+    Counts the ngrams in a list of tokens. Returns a dictionary in which 
+    key-value pairs are, respectively, each ngram and how many times it appears
+    in the list.
     """
-
-    # We'll need to use n - 1 several times (e.g. a bigram requires 1 each of 
-    # <s> and </s>, a trigram requires 2, etc.), so we'll call it 'm'
+    # Since an ngram looks n - 1 words into the past, we'll call this value 'm'
     m = n - 1
-
-    token_list_copy = copy(token_list)
-    
-    # Insert sentence start <s> and end </s> markers into each list of tokens
-    for i, sentence in enumerate(token_list_copy):
-        token_list_copy[i] = (['<s>'] * m) + sentence + (['</s>'] * m)
 
     ngram_dict = {}
 
-    for sentence in token_list_copy:
+    for sentence in token_list:
         for i in range(m, len(sentence)):
-            # Point at last (i - m) words for concatenation
+            # Look at last (i - m) words for concatenation
             pointer = i - m
             # Form an ngram by concatenating last (i - m) words, up to i
             ngram = ''
             while pointer <= i: 
                 ngram += sentence[pointer] + ' '
                 pointer += 1
-            # Strip whitespaces and add ngram to dict
+            # Strip trailing whitespace and add ngram to dict
             ngram = ngram.rstrip()
             ngram_dict.setdefault(ngram, 0)
             ngram_dict[ngram] += 1
     
     return ngram_dict
 
-test = ngram_count(2, tokenize(example_text, punctuation=False))
-print(sorted(test.items(), key=lambda x: x[1], reverse=True))
+def ngram_prob(n, token_list):
+    """
+    Generates Maximum Likelihood Estimation probabilities of the ngrams present
+    in a list of tokens. Returns a dictionary in which key-value pairs are,
+    respectively, each ngram and its probability
+    """    
+    # This will contain the ngrams and their probabilities
+    ngram_prob = {}
+    
+    # Generate list containing lower order (n-1)gram and ngram.
+    ngram_counts_list = [
+        ngram_count(n - 1, token_list),
+        ngram_count(n, token_list)
+    ]
+
+    for key, count in ngram_counts_list[1].items():
+        # Lower order ngram = current ngram minus its last word
+        lower_ngram_key = key.rsplit(' ', 1)[0]
+        lower_ngram_count = ngram_counts_list[0][lower_ngram_key]
+        p = count / lower_ngram_count
+        ngram_prob.update({key: p})
+    
+    return ngram_prob
+    
+test = ngram_prob(2, tokenize(example_text, punctuation=False, n = 2))
+print(sorted(test.items(), key=lambda x: x[1], reverse=False))
+
+"""for i in range(1, n + 1):
+ngram_counts_list.append(ngram_count(i, token_list))"""
