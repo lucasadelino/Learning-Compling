@@ -1,11 +1,12 @@
 """
 Contains functions to build ngram language models
-TODO: Create ngram probability function
+TODO: Prune extra </s> markers
+TODO: Remove extra whitespace when tokenize(punctuation==False)
 """
 
 import re
-import math
 from random import choices
+from pathlib import Path
 
 # Matches everything before a period, question mark, or exclamation mark. 
 sentence_regex = re.compile(r'(\S(?:.+?)[\.\?!]+)')
@@ -18,9 +19,6 @@ punctuation_regex = re.compile(r'([“”":;\'-\.\?!,]+)')
 
 # Matches en dashes surrounded by word characters. Useful for PT-BR parsing
 travessao_regex = re.compile(r'(\w)-(\w)')
-
-# TODO: Read example text from a .txt file
-example_text = 'César, Augusto, Nero e Massinissa, com os nomes por baixo... Não alcanço a razão de tais personagens.'
 
 def sentence_segment(text):
     """Returns a list containing the argument text broken up into sentences. 
@@ -154,17 +152,19 @@ def generate_sentence(ngram_prob):
                 next_values.append(v)
         # Choose ngram. Add only its last word; the rest is already in sentence
         next_ngram = choices(next_keys, weights=next_values)[0]
+        minus_first_word = next_ngram.split(' ', 1)[1]
         last_word = next_ngram.rsplit(' ', 1)[1]
-        sentence += ' ' + last_word
+        sentence += ' ' + minus_first_word
 
     # Add missing sentence end markers
     sentence +=  (' ' + end_marker) * (n - 2)
 
     return sentence
 
-
-test = ngram_prob(3, tokenize(example_text, punctuation=False, n = 3))
-print(generate_sentence(test))
-#print(sorted(test.items(), key=lambda x: x[1], reverse=False))
-"""for i in range(1, n + 1):
-ngram_counts_list.append(ngram_count(i, token_list))"""
+with open(Path.cwd() / 
+'Textbooks' / 'Speech and Language Processing (Jurafsky, Martin)' / 
+'Chapter 3 - N-gram Language Models' / 
+'machado.txt', 'r', encoding='utf-8') as file:
+    text = file.read()
+    sentence = ngram_prob(4, tokenize(text, punctuation=True, n = 4))
+    print(generate_sentence(sentence))
