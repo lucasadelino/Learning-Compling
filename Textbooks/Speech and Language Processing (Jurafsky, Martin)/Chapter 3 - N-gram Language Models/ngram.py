@@ -1,7 +1,5 @@
 """
 Contains functions to build ngram language models
-TODO: Prune extra </s> markers
-TODO: Fix unigram probability
 TODO: Remove extra whitespace when tokenize(punctuation==False)
 """
 
@@ -31,7 +29,7 @@ def sentence_segment(text):
     return list(sentence_regex.findall(text))
 
 # TODO: Separate tokenizer into another file
-def tokenize(text, punctuation = True, n = 1):
+def tokenize(text, punctuation = True):
     """
     A very crude tokenizer. Returns a list of tokens for each sentence in the 
     text passed as argument. Punctuation marks are considered tokens if the 
@@ -65,11 +63,6 @@ def tokenize(text, punctuation = True, n = 1):
             if word.isupper() or word.istitle():
                 each_list[i] = word.lower()
 
-    # Insert sentence start <s> and end </s> markers into each list of tokens
-    if n > 1:
-        for i, sentence in enumerate(token_list):
-            token_list[i] = (['<s>']*(n - 1)) + sentence + (['</s>']*(n - 1))
-
     return token_list
 
 def ngram_count(n, token_list):
@@ -78,8 +71,14 @@ def ngram_count(n, token_list):
     key-value pairs are, respectively, each ngram and how many times it appears
     in the list.
     """
+    
     # Since an ngram looks n - 1 words into the past, we'll call this value 'm'
     m = n - 1
+
+    # Insert sentence start <s> and end </s> markers into each list of tokens
+    if n > 1:
+        for i, sentence in enumerate(token_list):
+            token_list[i] = (['<s>'] * m) + sentence + (['</s>'] * m)
 
     ngram_dict = {}
 
@@ -107,17 +106,21 @@ def ngram_prob(n, token_list):
     """    
     # This will contain the ngrams and their probabilities
     ngram_prob = {}
-    
-    # Generate list containing lower order (n-1)gram and ngram
-    ngram_counts_list = [
-        ngram_count(n - 1, token_list),
-        ngram_count(n, token_list)
-    ]
 
-    for key, count in ngram_counts_list[1].items():
-        # Lower order ngram = current ngram minus its last word
-        lower_ngram_key = key.rsplit(' ', 1)[0]
-        lower_ngram_count = ngram_counts_list[0][lower_ngram_key]
+    # Generate list containing lower order (n-1)gram and ngram
+    this_ngram =  ngram_count(n, token_list)
+    
+    if n > 1:
+        lower_ngrams =  ngram_count(n-1, token_list)
+    else:
+        lower_ngram_count = len(ngram_count(1, token_list))
+
+    for key, count in this_ngram.items():
+        if n > 1:
+            # Lower order ngram = current ngram minus its last word
+            lower_ngram_key = key.rsplit(' ', 1)[0]
+            lower_ngram_count = lower_ngrams[lower_ngram_key]
+
         ngram_prob.update({key: (count / lower_ngram_count)})
     
     return ngram_prob
@@ -128,7 +131,7 @@ def generate_sentence(ngram_prob):
     """
     # Look at keys in ngram_prob to figure out what's the order of our ngrams
     n = len(list(ngram_prob.keys())[0].split(' '))
-       
+
     # Look for 1st ngram. Consider only ngrams that start with n-1 <s> markers
     next_keys = []
     next_values = []
@@ -166,5 +169,5 @@ with open(Path.cwd() /
 'Chapter 3 - N-gram Language Models' / 
 'machado.txt', 'r', encoding='utf-8') as file:
     text = file.read()
-    sentence = ngram_prob(4, tokenize(text, punctuation=True, n = 4))
+    sentence = ngram_prob(6, tokenize(text, punctuation=True))
     print(generate_sentence(sentence))
