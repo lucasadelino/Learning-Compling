@@ -2,7 +2,7 @@
 
 - [x]  Create a regex that matches 500GB or more, [but not exactly 500GB](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85)
 - [ ]  Rewrite regex above using negative lookahead assertions
-- [ ]  Review BPE algorithm
+- [x]  Review BPE algorithm
 - [ ]  Document everything I did to learn the minimum edit distance algorithm (including YouTube videos, pptx slides, hand-written notes, and spreadsheet)
 - [ ]  Review notes for grammar and clarity
 
@@ -13,7 +13,7 @@
 - **Tokenization:** separating a body of text into **tokens** (words). Usually whitespace separates words from each other in languages like English, but that's not always enough: words like *New York,* for instance, might be regarded as a single token.
 - **Lemmatization:** from *lemma;* figuring out which words share the same root. For instance, *sang, sung, singing* all relate to *sing*. **Stemming** is a simpler version of lemmatization which simply removes the suffixes from words. A **wordform** is the full version of a lemma (i.e. *cat* could be a lemma and *cats* a wordform).
     - The most sophisticated ways to lemmatize a corpus involve full morphological parsing (e.g. breaking down *recomeçarem* into something resembling *re-, começar-, -em;* this might also return morphological information such as *3rd person* or *future subjunctive*)
-- **Sentence segmentation**
+- **Sentence segmentation:** breaking up a string of text into sentences. While in most contexts punctuation marks are good delimitators of a sentence, there are some cases where punctuation can be
 
 ---
 
@@ -42,6 +42,18 @@ Some new regex stuff I've learned:
 ---
 
 Fixing errors in language and speech processing usually involves minimizing false positives (increasing p**recision**) ****and minimizing false negatives (increasing **recall**)
+
+---
+
+**Minimum edit distance:**
+
+This was challenging to learn, since I was unfamiliar with dynamic programming. After reading the textbook, l relied on the two videos below to learn more:
+
+[https://www.youtube.com/embed/XYi2-LPrwm4](https://www.youtube.com/embed/XYi2-LPrwm4)
+
+[https://www.youtube.com/embed/MiqoA-yF-0M?controls=0](https://www.youtube.com/embed/MiqoA-yF-0M?controls=0)
+
+After watching the videos, I practiced on questions [4](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85) and [5](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85) from the textbook, doing manual edit distance matrixes: 
 
 # Exercises
 
@@ -112,10 +124,13 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
     4. write a pattern that places the first word of an English sentence in a register. Deal with punctuation.
 
         ```python
-        //
+        /^[-'"']?([A-Za-z]+)/
         ```
 
 3. Implement an ELIZA-like program, using substitutions such as those described on page 10. You might want to choose a different domain than a Rogerian psychologist, although keep in mind that you would need a domain in which your program can legitimately engage in a lot of simple repetition.
+
+    [myfirstchatbot.py](https://github.com/lucasadelino/Learning-Compling/blob/main/Textbooks/Speech%20and%20Language%20Processing%20(Jurafsky%2C%20Martin)/Chapter%202%20-%20Regular%20Expressions%2C%20Text%20Normalization%2C%20Edit%20Distance/myfirstchatbot.py)
+
 4. Compute the edit distance (using insertion cost 1, deletion cost 1, substitution cost 1) of “leda” to “deal”. Show your work (using the edit distance grid).
 
     $\begin{array}{|c|c|c|c|c|c|}
@@ -137,6 +152,9 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
     Edit distance = 3
 
 5. Figure out whether drive is closer to brief or to divers and what the edit distance is to each. You may use any version of distance that you like.
+
+    With a sub cost of 1, drive is equidistant to both brief and divers. With a sub cost of 2, drive is closer 
+
 6. Now implement a minimum edit distance algorithm and use your hand-computed results to check your code.
 
     [mineditdist.py](https://github.com/lucasadelino/Learning-Compling/blob/main/Textbooks/Speech%20and%20Language%20Processing%20(Jurafsky%2C%20Martin)/Chapter%202%20-%20Regular%20Expressions%2C%20Text%20Normalization%2C%20Edit%20Distance/mineditdist.py)
