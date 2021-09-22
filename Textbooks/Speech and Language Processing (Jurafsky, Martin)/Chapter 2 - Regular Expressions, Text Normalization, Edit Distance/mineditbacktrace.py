@@ -73,7 +73,7 @@ def align(source, target):
     """
     source_output = ''
     target_output = ''
-    commands = ''
+    operations = ''
 
     matrix = min_edit_dist(source, target)[1]
     
@@ -95,23 +95,23 @@ def align(source, target):
             i -= 1
             source_output = source[i] + source_output 
             target_output = '*' + target_output
-            commands = 'd' + commands
+            operations = 'd' + operations
         if direction == 'diag':
             i -= 1
             j -= 1
             source_output = source[i] + source_output 
             target_output = target[j] + target_output
             if source[i] == target[j]:
-                commands = ' ' + commands
+                operations = ' ' + operations
             else:
-                commands = 's' + commands
+                operations = 's' + operations
         if direction == 'left':
             j -= 1
             source_output = '*' + source_output
             target_output = target[j] + target_output
-            commands = 'i' + commands
+            operations = 'i' + operations
 
-    return (source_output, target_output, commands)
+    return (source_output, target_output, operations)
 
 def pprint_alignment(alignment):
     """Pretty prints an alignment"""
@@ -119,6 +119,8 @@ def pprint_alignment(alignment):
         for character in list:
             print(character, end=' ')
         print()
+
+pprint_alignment(align('intention', 'execution'))
 
 #def pprint_min_edit_dist(source, target): 
     #TODO
