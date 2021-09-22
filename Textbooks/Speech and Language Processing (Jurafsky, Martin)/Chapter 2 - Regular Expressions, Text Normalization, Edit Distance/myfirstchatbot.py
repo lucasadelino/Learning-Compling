@@ -29,6 +29,9 @@ pattern_dict = [
 {'pattern': r".*?(s?he)(?:'|\si)s.*", 
  'response': r"Do you wish that \1 was different?", 
  'rank': 2},
+{'pattern': r".*(a lot of |too much )?work(?:ing)?( a lot| too much)?.*", 
+ 'response': "It's good to take a break now and then", 
+ 'rank': 5}
 #{'pattern': r"", 
 # 'response': r"", 
 # 'rank': 0},
