@@ -7,10 +7,9 @@ DEL_COST = 1
 INS_COST = 1
 SUB_COST_DIF = 2
 SUB_COST_EQL = 0
-
-def min_edit_dist(source, target):
+def min_edit_dist(source, target) -> 'tuple[int, list]':
     """
-    Calculate the edit distance between source and target strings. Returns a 
+    Calculates the edit distance between source and target strings. Returns a 
     tuple containing:
         The minimum edit distance [0]
         The dynamic programming matrix used to calculate the above [1] 
@@ -120,8 +119,31 @@ def pprint_alignment(alignment):
             print(character, end=' ')
         print()
 
-pprint_alignment(align('intention', 'execution'))
-
-#def pprint_min_edit_dist(source, target): 
-    #TODO
+def pprint_min_edit_dist(source, target): 
+    """
+    Prints and edit distance matrix in LaTeX
+    """
+    matrix = [[' ']]
     
+    source_list = ["''"] + list(source)
+    target_list = ["''"] + list(target)
+    
+    for character in target_list:
+        matrix[0].append(character)
+
+    for i, row in enumerate(min_edit_dist(source, target)[1]):
+        matrix.append([source_list[i]])
+        for character in row:
+            matrix[i+1].append(character['value'])
+
+    print("\\begin{array}{%s|}" % ('|c' * len(matrix[0])))
+   
+    for row in matrix:
+        print(r'\hline')
+        print(*row, sep = ' & ', end = r' \\')
+        print()
+    
+    print(r'\hline')
+    print(r'\end{array}')   
+
+pprint_min_edit_dist('leda', 'deal')
