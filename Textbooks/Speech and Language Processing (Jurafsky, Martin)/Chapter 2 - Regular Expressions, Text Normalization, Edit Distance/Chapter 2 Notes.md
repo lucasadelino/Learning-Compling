@@ -135,17 +135,17 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
 
     $\begin{array}{|c|c|c|c|c|c|}
     \hline
-     & '' & D & E & A & L \\
+     & '' & d & e & a & l \\
     \hline
     '' & 0 & 1 & 2 & 3 & 4 \\
     \hline
-    L & 1 & 1 & 2 & 3 & 3 \\
+    l & 1 & 1 & 2 & 3 & 3 \\
     \hline
-    E & 2 & 2 & 1 & 2 & 3 \\
+    e & 2 & 2 & 1 & 2 & 3 \\
     \hline
-    D & 3 & 2 & 2 & 2 & 3 \\
+    d & 3 & 2 & 2 & 2 & 3 \\
     \hline
-    A & 4 & 3 & 3 & 2 & 3 \\
+    a & 4 & 3 & 3 & 2 & 3 \\
     \hline
     \end{array}$
 
@@ -153,7 +153,7 @@ However, this code will match *exactly 500GB*, which, I believe, would not be al
 
 5. Figure out whether drive is closer to brief or to divers and what the edit distance is to each. You may use any version of distance that you like.
 
-    With a sub cost of 1, drive is equidistant to both brief and divers. With a sub cost of 2, drive is closer 
+    With a sub cost of 1, 'drive' is equidistant (distance = 3) to both 'brief' and 'divers'. With a sub cost of 2, 'drive' is closer to 'divers' (distance = 3) than 'brief' (distance = 4)
 
 6. Now implement a minimum edit distance algorithm and use your hand-computed results to check your code.
 
