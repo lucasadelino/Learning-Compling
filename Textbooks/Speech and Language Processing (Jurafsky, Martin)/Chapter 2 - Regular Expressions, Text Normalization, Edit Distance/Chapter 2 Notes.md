@@ -3,8 +3,8 @@
 - [x]  Create a regex that matches 500GB or more, [but not exactly 500GB](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85)
 - [ ]  Rewrite regex above using negative lookahead assertions
 - [x]  Review BPE algorithm
-- [ ]  Document everything I did to learn the minimum edit distance algorithm (including YouTube videos, pptx slides, hand-written notes, and spreadsheet)
-- [ ]  Review notes for grammar and clarity
+- [x]  Document everything I did to learn the minimum edit distance algorithm (including YouTube videos, pptx slides, hand-written notes, and spreadsheet)
+- [x]  Review notes for grammar and clarity
 
 # Notes
 
@@ -22,7 +22,7 @@
 In the context of a corpus, there are a few different ways we can refer to words:
 
 - **Types** are all unique words
-- **Tokens** are all words, including repetitions.
+- **Tokens** are all words, including repeated words.
 
 So for instance, the sentence "*the quick brown fox jumps over the lazy dog"* has 8 types and 9 tokens.
 
@@ -53,7 +53,11 @@ This was challenging to learn, since I was unfamiliar with dynamic programming. 
 
 [https://www.youtube.com/embed/MiqoA-yF-0M?controls=0](https://www.youtube.com/embed/MiqoA-yF-0M?controls=0)
 
-After watching the videos, I practiced on questions [4](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85) and [5](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85) from the textbook, doing manual edit distance matrixes: 
+After watching the videos, I practiced on questions [4](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85) and [5](https://www.notion.so/Chapter-2-Regular-Expressions-Text-Normalization-Edit-Distance-4981f719dab04660bfa78ff1f740fa85) from the textbook, doing manual edit distance matrixes. I relied heavily on these hand-computed distance matrixes when it was time to implement them in Python.
+
+![WhatsApp Image 2021-09-25 at 1.47.26 PM.jpeg](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/adbbf0ca-7829-427e-8fe2-9a025ce285cf/WhatsApp_Image_2021-09-25_at_1.47.26_PM.jpeg)
+
+![WhatsApp Image 2021-09-25 at 1.47.26 PM(1).jpeg](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3f13cbf6-c941-4007-999b-3ef4e5cb7c86/WhatsApp_Image_2021-09-25_at_1.47.26_PM(1).jpeg)
 
 # Exercises
 
