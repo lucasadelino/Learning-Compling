@@ -2,6 +2,7 @@
 #TODO: Implement weighting  
 
 from random import choice
+import pyperclip
 
 DEL_COST = 1
 INS_COST = 1
@@ -112,21 +113,28 @@ def align(source, target):
 
     return (source_output, target_output, operations)
 
-def pprint_alignment(alignment):
+def pprint_alignment(source, target):
     """Pretty prints an alignment"""
-    for list in alignment:
-        for character in list:
-            print(character, end=' ')
-        print()
-
-def pprint_min_edit_dist(source, target): 
-    """
-    Prints and edit distance matrix in LaTeX
-    """
-    matrix = [[' ']]
     
-    source_list = ["''"] + list(source)
-    target_list = ["''"] + list(target)
+    for list in align(source, target):
+        print(*list, sep=' ')
+
+def pprint_min_edit_dist(source, target, output='latex'): 
+    """
+    Prints and copies to clipbord a prettified string version of the edit 
+    distance matrix between source and target strings. Outputs to plain text or 
+    LaTeX.
+    """
+    # Specify which character to use for the empty string. '#' works better for
+    # text output since it makes spacing more consistent
+    empty_char = "#" if output == 'text' else "''" 
+
+    source_list = [empty_char] + list(source)
+    target_list = [empty_char] + list(target)
+
+    # Initialize an empty matrix. This will house the edit distance matrix, but
+    # with an extra row (for target string) and column (for source string)
+    matrix = [[' ']]
     
     for character in target_list:
         matrix[0].append(character)
@@ -134,16 +142,24 @@ def pprint_min_edit_dist(source, target):
     for i, row in enumerate(min_edit_dist(source, target)[1]):
         matrix.append([source_list[i]])
         for character in row:
-            matrix[i+1].append(character['value'])
+            matrix[i+1].append(str(character['value']))
 
-    print("\\begin{array}{%s|}" % ('|c' * len(matrix[0])))
-   
-    for row in matrix:
-        print(r'\hline')
-        print(*row, sep = ' & ', end = r' \\')
-        print()
-    
-    print(r'\hline')
-    print(r'\end{array}')   
+    sentence = ''
+
+    if output == 'latex':
+        sentence = "\\begin{array}{%s|}\n" % ('|c' * len(matrix[0]))
+
+        for row in matrix:
+            sentence += '\hline\n' + ' & '.join(row) + r' \\' + '\n'
+
+        sentence += '\hline\n' + r'\end{array}'
+        
+    elif output == 'text': 
+        for row in matrix:
+            sentence += '  '.join(row) + '\n'
+
+    pyperclip.copy(sentence)
+    print(sentence)  
 
 pprint_min_edit_dist('leda', 'deal')
+pprint_alignment('intention', 'execution')
