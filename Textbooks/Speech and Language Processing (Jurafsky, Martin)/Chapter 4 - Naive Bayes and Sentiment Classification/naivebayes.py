@@ -1,5 +1,9 @@
 from math import log
 
+A = 1
+
+#TODO: It might be better if NB model is a class. Learn more about OO Python
+
 """
 class_dict = {'negative': [['just', 'plain', 'boring'], 
                            ['entirely', 'predictable', 'and', 'lacks', 'energy'], 
@@ -23,59 +27,59 @@ def train(class_dict):
     """
     # Get n_doc value
     n_doc = 0
-    for value in class_dict.values():
-        n_doc += len(value)
+    for doc_list in class_dict.values():
+        n_doc += len(doc_list)
     
     priors = {}
-    class_word_counts = {}
-    for key, value in class_dict.items():
+    classes_word_counts = {}
+    for class_label, doc_list in class_dict.items():
         # Compute priors
-        n_c = len(value)    
-        priors.update({key: log(n_c/n_doc)})
+        n_c = len(doc_list)    
+        priors.update({class_label: log(n_c/n_doc)})
 
         # Get word counts by class
-        class_vocab = {}
-        for document in value:
+        each_class_word_counts = {}
+        for document in doc_list:
             for word in document:
-                class_vocab.setdefault(word, 0)
-                class_vocab[word] += 1
-        class_word_counts.update({key: class_vocab})
+                each_class_word_counts.setdefault(word, 0)
+                each_class_word_counts[word] += 1
+        classes_word_counts.update({class_label: each_class_word_counts})
     
     # Get vocab
     vocab = {}
-    for dict in class_word_counts.values():
+    for dict in classes_word_counts.values():
         for key in dict.keys():
             vocab.setdefault(key, {})
     
-    for keye, dict in class_word_counts.items():
+    for class_label, word_count_dict in classes_word_counts.items():
         # Get total word counts by class
         class_total_words = 0
-        for value in dict.values():
+        for value in word_count_dict.values():
             class_total_words += value
         
         # Compute likelihoods
-        for key in vocab:
-            countiee = dict.get(key, 0)
-            formula = log((countiee + 1) / (class_total_words + len(vocab)))
-            vocab[key].update({keye: formula})
+        for word in vocab:
+            word_count = word_count_dict.get(word, 0)
+            formula = log((word_count + A) / (class_total_words + len(vocab)))
+            vocab[word].update({class_label: formula})
 
     return (priors, vocab)
 
-def test(test_doc, training_tuple):
+def test(test_doc, nb):
     """
-    Tests a sentence agains a NB classifier and returns the most likely class
+    Tests a sentence against a NB classifier and returns the most likely class
     """
     sums = {}
-    for label, prior in training_tuple[0].items():
+    for class_label, prior in nb[0].items():
         this_sum = prior
         for word in test_doc:
-            if word in training_tuple[1]:
-                this_sum += training_tuple[1].get(word)[label]
-        sums.update({label: this_sum})
+            if word in nb[1]:
+                this_sum += nb[1].get(word)[class_label]
+        sums.update({class_label: this_sum})
     
     return max(sums, key=sums.get)
 
-def bootstrap(test_set, samples):
+def bootstrap(test_set, num_samples):
     return
 
 class_dict = {'negative': [['just', 'plain', 'boring'], 
