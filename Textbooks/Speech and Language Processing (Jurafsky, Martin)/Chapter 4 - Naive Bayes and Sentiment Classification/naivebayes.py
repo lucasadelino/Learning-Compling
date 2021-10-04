@@ -1,5 +1,11 @@
 from math import log
+from pathlib import Path
+from nbtokenizer import tokenize
+import re
 
+space_regex = re.compile(r"(\n)")
+
+# This changes the number used for add-X smoothing.
 A = 1
 
 #TODO: It might be better if NB model is a class. Learn more about OO Python
@@ -37,12 +43,13 @@ def train(class_dict):
         n_c = len(doc_list)    
         priors.update({class_label: log(n_c/n_doc)})
 
-        # Get word counts by class
+        # Generate dict with word counts for each class
         each_class_word_counts = {}
         for document in doc_list:
             for word in document:
                 each_class_word_counts.setdefault(word, 0)
                 each_class_word_counts[word] += 1
+
         classes_word_counts.update({class_label: each_class_word_counts})
     
     # Get vocab
@@ -52,7 +59,7 @@ def train(class_dict):
             vocab.setdefault(key, {})
     
     for class_label, word_count_dict in classes_word_counts.items():
-        # Get total word counts by class
+        # Get total number of words of each class
         class_total_words = 0
         for value in word_count_dict.values():
             class_total_words += value
@@ -79,14 +86,41 @@ def test(test_doc, nb):
     
     return max(sums, key=sums.get)
 
-def bootstrap(test_set, num_samples):
-    return
+# TODO: Make this work with more than 1 class
+def load_class_dict(cls1, cls2):
+    """
+    Returns a dictionary containing classes and documents that can be used in
+    the naive Bayes classifier. Make sure to have .txt files with the same
+    name passed to classes
+    """
+    with open(Path.cwd() / f'{cls1}.txt', 'r', encoding='utf-8') as file:
+        cls1_docs = file.readlines()
+        for i, item in enumerate(cls1_docs):
+            if item == '\n':
+                cls1_docs.pop(i)
+        for i, item in enumerate(cls1_docs):
+            cls1_docs[i] = space_regex.sub('', item)
 
-class_dict = {'negative': [['just', 'plain', 'boring'], 
-                           ['entirely', 'predictable', 'and', 'lacks', 'energy'], 
-                           ['no', 'surprises', 'and', 'very', 'few', 'laughs']],
-              'positive': [['very', 'powerful'], 
-                           ['the', 'most', 'fun', 'film', 'of', 'the', 'summer']]}
+    with open(Path.cwd() / f'{cls2}.txt', 'r', encoding='utf-8') as file:
+        cls2_docs = file.readlines()
+        for i, item in enumerate(cls2_docs):
+            if item == '\n':
+                cls2_docs.pop(i)
+        for i, item in enumerate(cls2_docs):
+            cls2_docs[i] = space_regex.sub('', item)
+
+    cls1_docs = tokenize(cls1_docs, punctuation=False)
+    cls2_docs = tokenize(cls2_docs, punctuation=False)
+
+    return {cls1: cls1_docs, cls2: cls2_docs}
+
+def bootstrap(test_set, num_samples):
+    pass
+
+class_dict = load_class_dict('positivo', 'negativo')
 
 nb = train(class_dict)
-print(test(['very', 'fun'], nb))
+
+string_to_test = 'tremores é um filme ruim'
+tokenized_version = string_to_test.split(' ')
+print(test(tokenized_version, nb))
