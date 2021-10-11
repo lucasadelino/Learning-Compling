@@ -1,6 +1,5 @@
 """
 Contains functions to build ngram language models
-TODO: Remove extra whitespace when tokenize(punctuation==False)
 TODO: Add unigram sentence generation
 """
 
@@ -8,6 +7,7 @@ import re
 from random import choices
 from math import log, exp 
 from pathlib import Path
+from copy import deepcopy
 
 # Matches everything before a period, question mark, or exclamation mark. 
 sentence_regex = re.compile(r'(\S(?:.+?)[\.\?!]+)')
@@ -21,8 +21,11 @@ punctuation_regex = re.compile(r'([“”":;\'-\.\?!,]+)')
 # Matches en dashes surrounded by word characters. Useful for PT-BR parsing
 travessao_regex = re.compile(r'(\w)-(\w)')
 
-# Matches en dashes surrounded by word characters. Useful for PT-BR parsing
+# Matches sentence end markers
 endmarker_regex = re.compile(r'</s>')
+
+# Matches any words 
+word_regex = re.compile(r'(\w+)')
 
 def sentence_segment(text):
     """Returns a list containing the argument text broken up into sentences. 
@@ -31,15 +34,12 @@ def sentence_segment(text):
     return list(sentence_regex.findall(text))
 
 # TODO: Separate tokenizer into another file
-def tokenize(text, punctuation = True, n=1):
+def tokenize(text, punctuation = True):
     """
     A very crude tokenizer. Returns a list of tokens for each sentence in the 
     text passed as argument. Punctuation marks are considered tokens if 
-    punctuation == True, or deleted if False. The n parameter adds n-1  
-    sentence start <s> and end </s> markers to each sentence for ngram 
-    processing. At present, this tokenizer doesn't  take named entities into 
-    account or employs any normalization other than case folding.
-    TODO: Add option that returns a single list instead of a list of lists
+    punctuation == True, or deleted if False. At present, this tokenizer 
+    doesn't take named entities into account or employ any normalization other than case folding.
     """
     sentence_list = sentence_segment(text)
 
@@ -64,29 +64,39 @@ def tokenize(text, punctuation = True, n=1):
             if word.isupper() or word.istitle():
                 each_list[i] = word.lower()
 
-    # Insert sentence start <s> and end </s> markers in each list of tokens
-    if n > 1:
-        for i, sentence in enumerate(token_list):
-            token_list[i] = (['<s>'] * (n-1)) + sentence + (['</s>'] * (n-1))
-
     return token_list
 
-def ngram_count(n, token_list):
+def add_markers(n, token_list):
+    """
+    Adds n-1 sentence start <s> and end </s> markers to each sentence for 
+    ngram processing.
+    """    
+    if n > 1:
+        # Insert sentence start <s> and end </s> markers in each list
+        token_list = deepcopy(token_list)
+        for i, sentence in enumerate(token_list):
+            token_list[i] = (['<s>'] * (n-1)) + sentence + (['</s>'] * (n-1))
+    
+    return token_list
+
+def ngram_count(n, token_list, markers=True):
     """
     Counts the ngrams in a list of tokens. Returns a dictionary in which 
     key-value pairs are, respectively, each ngram and how many times it appears
-    in the list.
+    in the list. The 'markers' parameter adds n-1 sentence start and end 
+    markers to token_list (defaults to True)
     """
-    # Since an ngram looks n - 1 words into the past, we'll call this value 'm'
-    m = n - 1
+
+    if markers == True:
+        token_list = add_markers(n, token_list)
 
     ngram_dict = {}
 
     for sentence in token_list:
-        for i in range(m, len(sentence)):
+        for i in range((n - 1), len(sentence)):
             # Look at last (i - m) words for concatenation
-            pointer = i - m
-            # Form an ngram by concatenating last (i - m) words, up to i
+            pointer = i - (n - 1)
+            # Form an ngram by concatenating last (i - (n-1)) words, up to i
             ngram = ''
             while pointer <= i: 
                 ngram += sentence[pointer] + ' '
@@ -99,10 +109,14 @@ def ngram_count(n, token_list):
     return ngram_dict
 
 def get_vocab_size(token_list):
+    """
+    Returns the vocabulary size (number of unique words) of a token list
+    """
     return len(ngram_count(1, token_list))
 
 def get_token_count(token_list):
     """
+    Returns the total number of tokens of a token list
     """
     token_count = 0
     for value in ngram_count(1, token_list).values():
@@ -119,13 +133,16 @@ def ngram_prob(n, token_list):
     # This will contain the ngrams and their probabilities
     ngram_prob = {}
 
+    #TODO: Explain
+    token_list = add_markers(n, token_list)
+
     # Get the counts of ngrams of the same n passed as argument
-    ngrams =  ngram_count(n, token_list)
+    ngrams =  ngram_count(n, token_list, markers=False)
     # Get the count of lower-order ngram OR total number of tokens if n == 1
     if n > 1:
-        lower_ngrams =  ngram_count(n - 1, token_list)
+        lower_ngrams =  ngram_count(n - 1, token_list, markers=False)
     elif n == 1:
-        lower_ngram_count = get_token_count
+        lower_ngram_count = get_token_count()
 
     for key, count in ngrams.items():
         if n > 1:
@@ -156,7 +173,7 @@ def generate_sentence(ngram_probs):
     last_word = sentence.rsplit(' ', 1)[1]
     
     # Keep generating sentences until we get an n-gram with an </s> end marker 
-    # Loop stops after the first </s>; we'll add the remanining markers later 
+    # Loop stops after the first </s>; we'll add the remaining markers later 
     while '</s>' not in last_word:
         # Look for next ngram.
         next_keys = []
@@ -165,6 +182,7 @@ def generate_sentence(ngram_probs):
             if k.startswith(last_word):
                 next_keys.append(k)
                 next_values.append(v)
+        
         # Choose ngram. Don't add first word since it's already in the sentence
         next_ngram = choices(next_keys, weights=next_values)[0]
         sentence += ' ' + next_ngram.split(' ', 1)[1]
@@ -185,19 +203,17 @@ def perplexity(n, token_list):
             token_list[0].append(word)
         token_list.pop(1)
 
-
     # Get the probability of the entire token list via chain rule of probs
     counts = ngram_count(n, token_list)
     probs = ngram_prob(n, token_list)
     log_prob = 0
-
     for k, v in counts.items():
         log_prob += v * log(probs.get(k))
     
     # Exclude </s> markers from total token count
-    token_count = get_token_count
+    token_count = get_token_count()
     if n > 1:
-        token_count -= ngram_count(1, token_list).get('</s>')
+        token_count -= ngram_count(1, token_list, markers=False).get('</s>')
     
     pp = exp(-(1/token_count) * log_prob)
 
@@ -208,8 +224,9 @@ with open(Path.cwd() /
 'Chapter 3 - N-gram Language Models' / 
 'machado.txt', 'r', encoding='utf-8') as file:
     text = file.read()
-    tokenlist = tokenize(text, punctuation=True, n=5)
+    #tokenlist = tokenize(text, punctuation=True, n=5)
     #ngram_count(2, listie)
-    print(perplexity(5, tokenlist))
-    #sentence = ngram_prob(6, tokenize(text, punctuation=True, n=6))
-    #print(generate_sentence(sentence))
+    #print(perplexity(5, tokenlist))
+    sentence = ngram_prob(4, tokenize(text, punctuation=True))
+    print(generate_sentence(sentence))
+    print(Path.cwd())
