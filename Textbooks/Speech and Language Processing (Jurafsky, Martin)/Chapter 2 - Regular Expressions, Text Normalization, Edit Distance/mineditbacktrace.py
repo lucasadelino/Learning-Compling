@@ -1,4 +1,3 @@
-#TODO: Implement pretty print matrix. Options for outputting raw text or LaTeX
 #TODO: Implement weighting  
 
 from random import choice
@@ -6,8 +5,9 @@ import pyperclip
 
 DEL_COST = 1
 INS_COST = 1
-SUB_COST_DIF = 2
+SUB_COST_DIF = 1
 SUB_COST_EQL = 0
+
 def min_edit_dist(source, target) -> 'tuple[int, list]':
     """
     Calculates the edit distance between source and target strings. Returns a 
@@ -21,14 +21,14 @@ def min_edit_dist(source, target) -> 'tuple[int, list]':
     # Initialize empty matrix. Each entry is a dict containing: 
         # The cell value
         # A list of pointers
-    matrix = [[{'value': 0, 'pointers': []} for _ in range(len(target) + 1)] for _ in range(len(source) + 1)]
+    matrix = [[{'number': 0, 'pointers': []} for _ in range(len(target) + 1)] for _ in range(len(source) + 1)]
     
     # Fill base cases' values and pointers
     for i in range(1, n + 1):
-        matrix[i][0]['value'] = matrix[i-1][0]['value'] + DEL_COST
+        matrix[i][0]['number'] = matrix[i-1][0]['number'] + DEL_COST
         matrix[i][0]['pointers'].append('up')
     for j in range(1, m + 1):
-        matrix[0][j]['value'] = matrix[0][j-1]['value'] + INS_COST
+        matrix[0][j]['number'] = matrix[0][j-1]['number'] + INS_COST
         matrix[0][j]['pointers'].append('left')
 
     # Recursively populate matrix:
@@ -36,30 +36,30 @@ def min_edit_dist(source, target) -> 'tuple[int, list]':
         for j in range(0, m):
             sub_cost = 0
             
-            # Check if subbing for a different or identical character
+            # Check if we're subbing for a different or identical character
             if source[i] == target[j]: 
                 sub_cost = SUB_COST_EQL
             else:
                 sub_cost = SUB_COST_DIF
             
-            # Get neighboring cell values
-            up_value = matrix[i][j+1]['value'] + DEL_COST 
-            diag_value = matrix[i][j]['value'] + sub_cost 
-            left_value = matrix[i+1][j]['value'] + INS_COST
+            # Get neighboring cell numbers
+            up_value = matrix[i][j+1]['number'] + DEL_COST 
+            diag_value = matrix[i][j]['number'] + sub_cost 
+            left_value = matrix[i+1][j]['number'] + INS_COST
 
-            # Set current cell value
+            # Set current cell number
             min_value = min(up_value, diag_value, left_value)
-            matrix[i+1][j+1]['value'] = min_value
+            matrix[i+1][j+1]['number'] = min_value
             
             # Set pointers
+            if diag_value == min_value:
+                matrix[i+1][j+1]['pointers'].append('nw')
             if up_value == min_value:
                 matrix[i+1][j+1]['pointers'].append('up')
-            if diag_value == min_value:
-                matrix[i+1][j+1]['pointers'].append('diag')
             if left_value == min_value:
                 matrix[i+1][j+1]['pointers'].append('left')
 
-    return (matrix[n][m]['value'], matrix)
+    return (matrix[n][m]['number'], matrix)
     
 def align(source, target):
     """
@@ -86,7 +86,7 @@ def align(source, target):
         # If there are multiple pointers, randomly choose one
         if len(direction) > 1:
             direction = choice(direction)
-        # If there's only one pointer, transform it into a string
+        # If there's only one pointer, get the string value
         else:
             direction = direction[0] 
         
@@ -96,7 +96,7 @@ def align(source, target):
             source_output = source[i] + source_output 
             target_output = '*' + target_output
             operations = 'd' + operations
-        if direction == 'diag':
+        if direction == 'nw':
             i -= 1
             j -= 1
             source_output = source[i] + source_output 
@@ -119,7 +119,7 @@ def pprint_alignment(source, target):
     for list in align(source, target):
         print(*list, sep=' ')
 
-def pprint_min_edit_dist(source, target, output='latex'): 
+def pprint_min_edit_dist(source, target, output='latex', pointers=False): 
     """
     Prints and copies to clipbord a prettified string version of the edit 
     distance matrix between source and target strings. Outputs to plain text or 
@@ -136,18 +136,35 @@ def pprint_min_edit_dist(source, target, output='latex'):
     # with an extra row (for target string) and column (for source string)
     matrix = [[' ']]
     
+    # Populate first row (the target string)
     for character in target_list:
         matrix[0].append(character)
 
+    # Populate remaining rows
     for i, row in enumerate(min_edit_dist(source, target)[1]):
         matrix.append([source_list[i]])
         for character in row:
-            matrix[i+1].append(str(character['value']))
+            value_string = str(character['number'])
+            
+            # (Optionally) generate pointers
+            if output == 'latex' and pointers == True:
+                for pointer in character['pointers']:
+                    value_string += f'\\{pointer}arrow' 
+            
+            matrix[i+1].append(value_string)
 
+    # Generate string from matrix
     sentence = ''
 
     if output == 'latex':
-        sentence = "\\begin{array}{%s|}\n" % ('|c' * len(matrix[0]))
+        
+        # Determine justification (right-justified looks better with pointers)
+        if pointers == False:
+            justify = 'c'
+        else:
+            justify = 'r'
+
+        sentence = "\\begin{array}{%s|}\n" % (f'|{justify}' * len(matrix[0]))
 
         for row in matrix:
             sentence += '\hline\n' + ' & '.join(row) + r' \\' + '\n'
@@ -159,7 +176,7 @@ def pprint_min_edit_dist(source, target, output='latex'):
             sentence += '  '.join(row) + '\n'
 
     pyperclip.copy(sentence)
-    print(sentence)  
+    print(sentence)
 
-pprint_min_edit_dist('leda', 'deal')
+#pprint_min_edit_dist('drive', 'brief', pointers=True)
 pprint_alignment('intention', 'execution')
