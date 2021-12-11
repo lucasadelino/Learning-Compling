@@ -1,6 +1,5 @@
 """
 Contains functions to build ngram language models
-TODO: Add unigram sentence generation
 """
 
 import re
@@ -33,7 +32,6 @@ def sentence_segment(text):
     """
     return list(sentence_regex.findall(text))
 
-# TODO: Separate tokenizer into another file
 def tokenize(text, punctuation = True):
     """
     A very crude tokenizer. Returns a list of tokens for each sentence in the 
@@ -72,7 +70,6 @@ def add_markers(n, token_list):
     ngram processing.
     """    
     if n > 1:
-        # Insert sentence start <s> and end </s> markers in each list
         token_list = deepcopy(token_list)
         for i, sentence in enumerate(token_list):
             token_list[i] = (['<s>'] * (n-1)) + sentence + (['</s>'] * (n-1))
@@ -133,7 +130,7 @@ def ngram_prob(n, token_list):
     # This will contain the ngrams and their probabilities
     ngram_prob = {}
 
-    #TODO: Explain
+    # Add <s> and </s> markers
     token_list = add_markers(n, token_list)
 
     # Get the counts of ngrams of the same n passed as argument
@@ -142,7 +139,7 @@ def ngram_prob(n, token_list):
     if n > 1:
         lower_ngrams =  ngram_count(n - 1, token_list, markers=False)
     elif n == 1:
-        lower_ngram_count = get_token_count()
+        lower_ngram_count = get_token_count(token_list)
 
     for key, count in ngrams.items():
         if n > 1:
@@ -153,12 +150,30 @@ def ngram_prob(n, token_list):
     
     return ngram_prob
 
+def generate_unigrams(length, ngram_probs):
+    """
+    Genrates unigrams based on a dictionary of ngram probabilities.
+    Length determines how many unigrams to generate"""
+    sentence = ''
+    next_unigram = ''
+
+    keys = list(ngram_probs.keys())
+    
+    for _ in range(length):
+        next_unigram = choices(keys, weights=ngram_probs.values())[0]
+        sentence += next_unigram + ' '
+
+    return sentence
+
 def generate_sentence(ngram_probs):
     """
     Generates a sentence based on a dictionary of ngram probabilities.
     """
     # Look at keys in ngram_probs to figure out what's the order of our ngrams
     n = len(list(ngram_probs.keys())[0].split(' '))
+
+    if n == 1:
+        print('Please use generate_unigrams() to generate unigrams')
 
     # Look for 1st ngram. Consider only ngrams that start with n-1 <s> markers
     next_keys = []
@@ -211,7 +226,7 @@ def perplexity(n, token_list):
         log_prob += v * log(probs.get(k))
     
     # Exclude </s> markers from total token count
-    token_count = get_token_count()
+    token_count = get_token_count(token_list)
     if n > 1:
         token_count -= ngram_count(1, token_list, markers=False).get('</s>')
     
@@ -227,6 +242,5 @@ with open(Path.cwd() /
     #tokenlist = tokenize(text, punctuation=True, n=5)
     #ngram_count(2, listie)
     #print(perplexity(5, tokenlist))
-    sentence = ngram_prob(4, tokenize(text, punctuation=True))
-    print(generate_sentence(sentence))
-    print(Path.cwd())
+    sentence = ngram_prob(1, tokenize(text, punctuation=False))
+    print(generate_unigrams(1, sentence))
