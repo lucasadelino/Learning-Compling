@@ -1,5 +1,3 @@
-#TODO: Implement weighting  
-
 from random import choice
 import pyperclip
 
@@ -177,6 +175,3 @@ def pprint_min_edit_dist(source, target, output='latex', pointers=False):
 
     pyperclip.copy(sentence)
     print(sentence)
-
-#pprint_min_edit_dist('drive', 'brief', pointers=True)
-pprint_alignment('intention', 'execution')

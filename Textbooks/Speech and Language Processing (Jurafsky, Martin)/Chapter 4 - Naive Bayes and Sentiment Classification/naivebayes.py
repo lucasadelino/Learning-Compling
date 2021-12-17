@@ -123,8 +123,3 @@ class BinaryNB:
 
     def bootstrap(test_set, num_samples):
         pass
-
-nb = BinaryNB()
-nb.train('positivo', 'negativo')
-test_str = 'tremores é um filme bom'
-print(nb.test(test_str.split(' ')))

@@ -233,14 +233,3 @@ def perplexity(n, token_list):
     pp = exp(-(1/token_count) * log_prob)
 
     return pp
-
-with open(Path.cwd() / 
-'Textbooks' / 'Speech and Language Processing (Jurafsky, Martin)' / 
-'Chapter 3 - N-gram Language Models' / 
-'machado.txt', 'r', encoding='utf-8') as file:
-    text = file.read()
-    #tokenlist = tokenize(text, punctuation=True, n=5)
-    #ngram_count(2, listie)
-    #print(perplexity(5, tokenlist))
-    sentence = ngram_prob(1, tokenize(text, punctuation=False))
-    print(generate_unigrams(1, sentence))
