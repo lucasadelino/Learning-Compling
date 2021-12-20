@@ -8,7 +8,7 @@ space_regex = re.compile(r"(\n)")
 # This changes the number used for add-X smoothing.
 A = 1
 
-class BinaryNB:
+class NaiveBayes:
     def __init__(self):
 
         self.class_dict = {}
