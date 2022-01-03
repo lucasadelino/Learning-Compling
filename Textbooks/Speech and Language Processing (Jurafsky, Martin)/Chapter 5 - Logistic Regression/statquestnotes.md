@@ -36,7 +36,7 @@ Like Linear Regression, Logistic Regression aims to fit a distribution to data, 
 
 [https://www.youtube.com/watch?v=sDv4f4s2SB8&t=0s](https://www.youtube.com/watch?v=sDv4f4s2SB8&t=0s)
 
-Schedule
+Schedule:
 
 ## Stochastic Gradient Descent
 
