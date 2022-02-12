@@ -8,12 +8,14 @@ import re
 def positivecount(document):
     """Returns the count of positive lexicon words in the document"""
     count = 0
-    with open(Path.cwd() / 'lexpositivo.txt') as file:
+    with open(Path.cwd() / 'lexpositivo.txt', encoding='utf-8') as file:
         lexicon = file.read().splitlines()
 
+    #print('Positivos:')
     for word in document:
         for lexword in lexicon:
             if word.lower().strip() == lexword:
+                #print(word)
                 count += 1
     
     return count
@@ -21,12 +23,14 @@ def positivecount(document):
 def negativecount(document):
     """Returns the count of negative lexicon words in the document"""
     count = 0
-    with open(Path.cwd() / 'lexnegativo.txt') as file:
+    with open(Path.cwd() / 'lexnegativo.txt', encoding='utf-8') as file:
         lexicon = file.read().splitlines()
 
+    #print('Negativos:')
     for word in document:
         for lexword in lexicon:
             if word.lower().strip() == lexword:
+                #print(word)
                 count += 1
     
     return count
